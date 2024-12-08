@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.Text()
+  email         String   @unique @db.Text()
+  password      String   @db.Text()
+  profile_image String?  @db.Text()
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  Shop          Shop[]
+
+  @@map("users")
+}
+
+model Shop {
+  id          Int       @id @default(autoincrement())
+  user_id     Int
+  name        String    @db.Text()
+  is_active   Boolean   @default(true)
+  image       String?   @db.Text()
+  description String?   @db.Text()
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+  products    Product[]
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("shops")
+}
+
+model Product {
+  id             Int            @id @default(autoincrement())
+  shop_id        Int
+  name           String         @db.Text()
+  image          String         @db.Text()
+  description    String         @db.Text()
+  stock          Int
+  price          Int
+  is_active      Boolean        @default(true)
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  deleted_at     DateTime?
+  product_images ProductImage[]
+
+  shop Shop @relation(fields: [shop_id], references: [id])
+
+  @@map("products")
+}
+
+model ProductImage {
+  id         Int     @id @default(autoincrement())
+  product_id Int
+  url        String  @db.Text()
+  position   Int
+  product    Product @relation(fields: [product_id], references: [id])
+
+  @@map("product_images")
+}
+
+model Category {
+  id            Int    @id @default(autoincrement())
+  category_name String @db.Text()
+
+  @@map("categories")
+}
+
+model CategoryMapping {
+  category_id Int
+  product_id  Int
+
+  @@unique([category_id, product_id])
+  @@map("category_mapping")
+}
